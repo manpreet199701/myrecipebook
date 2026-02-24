@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Recipe Book</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream: #f5f0e8;
+    --parchment: #ede6d6;
+    --brown: #3d2b1f;
+    --rust: #b5451b;
+    --gold: #c8963e;
+    --light-brown: #7a5c44;
+    --white: #fdfaf5;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background-color: var(--cream);
+    color: var(--brown);
+    min-height: 100vh;
+  }
+
+  /* HEADER */
+  header {
+    background-color: var(--brown);
+    padding: 2rem 2.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+    color: var(--cream);
+    letter-spacing: 0.02em;
+  }
+
+  header h1 span {
+    color: var(--gold);
+    font-style: italic;
+  }
+
+  header p {
+    color: #a89880;
+    font-size: 0.8rem;
+    margin-top: 0.2rem;
+  }
+
+  .add-btn {
+    background: var(--rust);
+    color: white;
+    border: none;
+    padding: 0.7rem 1.5rem;
+    border-radius: 4px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s;
+    white-space: nowrap;
+  }
+
+  .add-btn:hover { background: #9a3a16; }
+
+  /* MAIN LAYOUT */
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 2rem 2rem;
+  }
+
+  /* RECIPE GRID */
+  .recipe-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+  }
+
+  .recipe-card {
+    background: var(--white);
+    border-radius: 8px;
+    padding: 1.5rem;
+    cursor: pointer;
+    border: 1px solid #e0d8ca;
+    transition: transform 0.15s, box-shadow 0.15s;
+    position: relative;
+  }
+
+  .recipe-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(61,43,31,0.12);
+  }
+
+  .recipe-card .category-tag {
+    font-size: 0.7rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--rust);
+    margin-bottom: 0.5rem;
+  }
+
+  .recipe-card h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.2rem;
+    color: var(--brown);
+    margin-bottom: 0.4rem;
+    line-height: 1.3;
+  }
+
+  .recipe-card p {
+    font-size: 0.82rem;
+    color: var(--light-brown);
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .recipe-meta {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #e8e0d0;
+  }
+
+  .recipe-meta span {
+    font-size: 0.75rem;
+    color: #9a7e6a;
+  }
+
+  .recipe-meta span strong {
+    color: var(--brown);
+    font-weight: 500;
+  }
+
+  .delete-card-btn {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #c9b8a8;
+    font-size: 1rem;
+    padding: 0.2rem;
+    transition: color 0.2s;
+    opacity: 0;
+  }
+
+  .recipe-card:hover .delete-card-btn { opacity: 1; }
+  .delete-card-btn:hover { color: var(--rust); }
+
+  /* EMPTY STATE */
+  .empty-state {
+    text-align: center;
+    padding: 5rem 2rem;
+    color: #a89880;
+  }
+
+  .empty-state h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.8rem;
+    color: #c9b8a8;
+    margin-bottom: 0.5rem;
+  }
+
+  /* MODAL OVERLAY */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(30,20,12,0.6);
+    z-index: 100;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 2rem 1rem;
+    overflow-y: auto;
+  }
+
+  .modal-overlay.active { display: flex; }
+
+  .modal {
+    background: var(--white);
+    border-radius: 10px;
+    width: 100%;
+    max-width: 640px;
+    padding: 2.5rem;
+    position: relative;
+    margin: auto;
+    animation: slideIn 0.2s ease;
+  }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .modal h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.6rem;
+    margin-bottom: 1.5rem;
+    color: var(--brown);
+  }
+
+  .close-btn {
+    position: absolute;
+    top: 1.2rem;
+    right: 1.5rem;
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #a89880;
+    line-height: 1;
+  }
+
+  .close-btn:hover { color: var(--brown); }
+
+  /* FORM */
+  .form-group {
+    margin-bottom: 1.2rem;
+  }
+
+  .form-group label {
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--light-brown);
+    margin-bottom: 0.4rem;
+  }
+
+  .form-group input,
+  .form-group textarea,
+  .form-group select {
+    width: 100%;
+    padding: 0.7rem 0.9rem;
+    border: 1px solid #d8cfc2;
+    border-radius: 5px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem;
+    color: var(--brown);
+    background: var(--cream);
+    transition: border-color 0.2s;
+    outline: none;
+  }
+
+  .form-group input:focus,
+  .form-group textarea:focus,
+  .form-group select:focus {
+    border-color: var(--gold);
+  }
+
+  .form-group textarea {
+    min-height: 90px;
+    resize: vertical;
+    line-height: 1.5;
+  }
+
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 1rem;
+  }
+
+  .save-btn {
+    background: var(--brown);
+    color: var(--cream);
+    border: none;
+    padding: 0.85rem 2rem;
+    border-radius: 5px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    width: 100%;
+    margin-top: 0.5rem;
+    transition: background 0.2s;
+  }
+
+  .save-btn:hover { background: #5a3d2b; }
+
+  /* VIEW MODAL */
+  .view-modal .modal { max-width: 680px; }
+
+  .view-header { margin-bottom: 1.5rem; }
+
+  .view-header .cat {
+    font-size: 0.72rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--rust);
+    margin-bottom: 0.4rem;
+  }
+
+  .view-header h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+    margin-bottom: 0.3rem;
+  }
+
+  .view-header p { color: var(--light-brown); font-size: 0.9rem; }
+
+  .view-stats {
+    display: flex;
+    gap: 1.5rem;
+    background: var(--parchment);
+    border-radius: 6px;
+    padding: 1rem 1.2rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .stat { text-align: center; }
+  .stat .val { font-family: 'Playfair Display', serif; font-size: 1.3rem; color: var(--brown); }
+  .stat .lbl { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em; color: #9a7e6a; }
+
+  .section-title {
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--gold);
+    margin-bottom: 0.6rem;
+    margin-top: 1.2rem;
+  }
+
+  .ingredients-list {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .ingredients-list li {
+    background: var(--parchment);
+    border-radius: 20px;
+    padding: 0.3rem 0.8rem;
+    font-size: 0.82rem;
+    color: var(--brown);
+  }
+
+  .steps-list {
+    list-style: none;
+  }
+
+  .steps-list li {
+    padding: 0.6rem 0 0.6rem 2rem;
+    border-bottom: 1px solid #ece4d4;
+    font-size: 0.88rem;
+    color: var(--brown);
+    line-height: 1.5;
+    position: relative;
+  }
+
+  .steps-list li::before {
+    content: attr(data-n);
+    position: absolute;
+    left: 0;
+    font-family: 'Playfair Display', serif;
+    font-size: 0.9rem;
+    color: var(--gold);
+    font-weight: 700;
+  }
+
+  .notes-box {
+    background: var(--parchment);
+    border-left: 3px solid var(--gold);
+    padding: 0.8rem 1rem;
+    border-radius: 0 4px 4px 0;
+    font-size: 0.85rem;
+    color: var(--light-brown);
+    line-height: 1.6;
+    margin-top: 0.5rem;
+    white-space: pre-wrap;
+  }
+
+  .search-bar {
+    width: 100%;
+    max-width: 360px;
+    padding: 0.6rem 1rem;
+    border: 1px solid #d8cfc2;
+    border-radius: 30px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.88rem;
+    background: var(--white);
+    color: var(--brown);
+    outline: none;
+  }
+
+  .search-bar:focus { border-color: var(--gold); }
+
+  .top-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .recipe-count {
+    font-size: 0.82rem;
+    color: #a89880;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>My <span>Recipe Book</span></h1>
+    <p>Your personal kitchen collection</p>
+  </div>
+  <button class="add-btn" onclick="openAddModal()">+ Add Recipe</button>
+</header>
+
+<div class="container">
+  <div class="top-bar">
+    <input class="search-bar" type="text" placeholder="Search recipes..." oninput="filterRecipes(this.value)" />
+    <span class="recipe-count" id="recipeCount"></span>
+  </div>
+
+  <div class="recipe-grid" id="recipeGrid"></div>
+  <div class="empty-state" id="emptyState" style="display:none">
+    <h2>No recipes yet</h2>
+    <p>Click <strong>+ Add Recipe</strong> to start your collection</p>
+  </div>
+</div>
+
+<!-- ADD MODAL -->
+<div class="modal-overlay" id="addModal">
+  <div class="modal">
+    <button class="close-btn" onclick="closeAddModal()">×</button>
+    <h2>New Recipe</h2>
+
+    <div class="form-group">
+      <label>Recipe Name</label>
+      <input type="text" id="f-name" placeholder="e.g. Spicy Tuna Patties" />
+    </div>
+
+    <div class="form-group">
+      <label>Category</label>
+      <select id="f-category">
+        <option>Snack</option>
+        <option>Breakfast</option>
+        <option>Lunch</option>
+        <option>Dinner</option>
+        <option>Dessert</option>
+        <option>Drink</option>
+        <option>Other</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label>Short Description</label>
+      <input type="text" id="f-desc" placeholder="A quick summary of the dish" />
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Servings</label>
+        <input type="text" id="f-servings" placeholder="e.g. 4" />
+      </div>
+      <div class="form-group">
+        <label>Calories (total)</label>
+        <input type="text" id="f-calories" placeholder="e.g. 575" />
+      </div>
+      <div class="form-group">
+        <label>Protein (total)</label>
+        <input type="text" id="f-protein" placeholder="e.g. 46g" />
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Ingredients (one per line)</label>
+      <textarea id="f-ingredients" placeholder="185g canned tuna&#10;2 eggs&#10;3 tbsp breadcrumbs"></textarea>
+    </div>
+
+    <div class="form-group">
+      <label>Steps (one per line)</label>
+      <textarea id="f-steps" placeholder="Cook onion with spices&#10;Mix all ingredients&#10;Shape into patties and pan fry"></textarea>
+    </div>
+
+    <div class="form-group">
+      <label>Notes (optional)</label>
+      <textarea id="f-notes" placeholder="Any tips, variations, or reminders..."></textarea>
+    </div>
+
+    <button class="save-btn" onclick="saveRecipe()">Save Recipe</button>
+  </div>
+</div>
+
+<!-- VIEW MODAL -->
+<div class="modal-overlay view-modal" id="viewModal">
+  <div class="modal">
+    <button class="close-btn" onclick="closeViewModal()">×</button>
+    <div id="viewContent"></div>
+  </div>
+</div>
+
+<script>
+  const DEFAULT_RECIPES = [
+    {
+      id: 'tuna-patty-001',
+      name: 'Spicy Tuna Patties',
+      category: 'Snack',
+      desc: 'Flavourful pan-fried tuna patties with green chili, bloomed spices, and a chia seed boost',
+      servings: '4',
+      calories: '575',
+      protein: '46g',
+      ingredients: [
+        '185g canned tuna (drained)',
+        '3 tbsp breadcrumbs',
+        '1 whole onion, finely chopped',
+        '2 eggs',
+        '5 green chilies, finely chopped',
+        '1 tsp ginger garlic paste',
+        '½ tsp red chili powder',
+        '½ tsp chana masala',
+        '1 tsp chia seed powder',
+        '1 tsp oil (for onion)',
+        '1½ tsp oil (for frying)',
+        '1 tsp lemon juice (if needed)',
+        'Salt to taste'
+      ],
+      steps: [
+        'Heat oil in a pan. Add chopped onion and cook until soft. Add ginger garlic paste, green chilies, red chili powder, chana masala, and salt. Cook 2-3 minutes to bloom the spices.',
+        'Transfer onion mixture to a bowl and let it cool completely — do not add eggs to a hot mixture.',
+        'Add drained tuna to the cooled mixture. Add breadcrumbs, eggs, and chia seed powder. Mix well and let sit 2 minutes. Add a squeeze of lemon if the mixture feels too dry.',
+        'Divide into 4 portions and shape each into a flat round patty, pressing firmly.',
+        'Heat oil in a non-stick pan over medium heat. Place patties in and do not move them — let a crust form on the bottom for 3-4 minutes.',
+        'Flip carefully and cook the other side for 3-4 minutes until golden. Serve hot.'
+      ],
+      notes: 'Per patty: ~144 kcal, ~11.5g protein, ~1.5g fiber\nMedium heat is key — too high and the outside burns before the inside sets.\nDo not press down on the patties while cooking.',
+      createdAt: Date.now()
+    }
+  ];
+
+  let recipes = [];
+  let searchTerm = '';
+
+  async function loadRecipes() {
+    try {
+      const result = await window.storage.get('recipes-all');
+      recipes = result ? JSON.parse(result.value) : [...DEFAULT_RECIPES];
+    } catch (e) {
+      recipes = [...DEFAULT_RECIPES];
+    }
+    renderGrid();
+  }
+
+  async function persistRecipes() {
+    try {
+      await window.storage.set('recipes-all', JSON.stringify(recipes));
+    } catch (e) {}
+  }
+
+  function renderGrid() {
+    const grid = document.getElementById('recipeGrid');
+    const empty = document.getElementById('emptyState');
+    const countEl = document.getElementById('recipeCount');
+
+    const filtered = recipes.filter(r =>
+      r.name.toLowerCase().includes(searchTerm) ||
+      r.category.toLowerCase().includes(searchTerm) ||
+      r.desc.toLowerCase().includes(searchTerm)
+    );
+
+    countEl.textContent = `${filtered.length} recipe${filtered.length !== 1 ? 's' : ''}`;
+
+    if (filtered.length === 0) {
+      grid.innerHTML = '';
+      empty.style.display = 'block';
+      return;
+    }
+
+    empty.style.display = 'none';
+    grid.innerHTML = filtered.map(r => `
+      <div class="recipe-card" onclick="viewRecipe('${r.id}')">
+        <button class="delete-card-btn" onclick="deleteRecipe(event,'${r.id}')">✕</button>
+        <div class="category-tag">${r.category}</div>
+        <h3>${r.name}</h3>
+        <p>${r.desc}</p>
+        <div class="recipe-meta">
+          <span><strong>${r.servings}</strong> servings</span>
+          ${r.calories ? `<span><strong>${r.calories}</strong> kcal</span>` : ''}
+          ${r.protein ? `<span><strong>${r.protein}</strong> protein</span>` : ''}
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function filterRecipes(val) {
+    searchTerm = val.toLowerCase();
+    renderGrid();
+  }
+
+  function openAddModal() {
+    document.getElementById('addModal').classList.add('active');
+  }
+
+  function closeAddModal() {
+    document.getElementById('addModal').classList.remove('active');
+    ['f-name','f-desc','f-servings','f-calories','f-protein','f-ingredients','f-steps','f-notes'].forEach(id => {
+      document.getElementById(id).value = '';
+    });
+  }
+
+  function saveRecipe() {
+    const name = document.getElementById('f-name').value.trim();
+    if (!name) { alert('Please enter a recipe name.'); return; }
+
+    const ingredientsRaw = document.getElementById('f-ingredients').value.trim();
+    const stepsRaw = document.getElementById('f-steps').value.trim();
+
+    const recipe = {
+      id: 'r-' + Date.now(),
+      name,
+      category: document.getElementById('f-category').value,
+      desc: document.getElementById('f-desc').value.trim(),
+      servings: document.getElementById('f-servings').value.trim(),
+      calories: document.getElementById('f-calories').value.trim(),
+      protein: document.getElementById('f-protein').value.trim(),
+      ingredients: ingredientsRaw ? ingredientsRaw.split('\n').map(s => s.trim()).filter(Boolean) : [],
+      steps: stepsRaw ? stepsRaw.split('\n').map(s => s.trim()).filter(Boolean) : [],
+      notes: document.getElementById('f-notes').value.trim(),
+      createdAt: Date.now()
+    };
+
+    recipes.unshift(recipe);
+    persistRecipes();
+    renderGrid();
+    closeAddModal();
+  }
+
+  function viewRecipe(id) {
+    const r = recipes.find(x => x.id === id);
+    if (!r) return;
+
+    const ingredientsHtml = r.ingredients.length
+      ? `<ul class="ingredients-list">${r.ingredients.map(i => `<li>${i}</li>`).join('')}</ul>`
+      : '<p style="color:#a89880;font-size:0.85rem">No ingredients listed</p>';
+
+    const stepsHtml = r.steps.length
+      ? `<ol class="steps-list">${r.steps.map((s,i) => `<li data-n="${i+1}">${s}</li>`).join('')}</ol>`
+      : '<p style="color:#a89880;font-size:0.85rem">No steps listed</p>';
+
+    const notesHtml = r.notes
+      ? `<div class="section-title">Notes</div><div class="notes-box">${r.notes}</div>`
+      : '';
+
+    document.getElementById('viewContent').innerHTML = `
+      <div class="view-header">
+        <div class="cat">${r.category}</div>
+        <h2>${r.name}</h2>
+        ${r.desc ? `<p>${r.desc}</p>` : ''}
+      </div>
+      <div class="view-stats">
+        <div class="stat"><div class="val">${r.servings || '—'}</div><div class="lbl">Servings</div></div>
+        <div class="stat"><div class="val">${r.calories || '—'}</div><div class="lbl">Calories</div></div>
+        <div class="stat"><div class="val">${r.protein || '—'}</div><div class="lbl">Protein</div></div>
+      </div>
+      <div class="section-title">Ingredients</div>
+      ${ingredientsHtml}
+      <div class="section-title">Steps</div>
+      ${stepsHtml}
+      ${notesHtml}
+    `;
+
+    document.getElementById('viewModal').classList.add('active');
+  }
+
+  function closeViewModal() {
+    document.getElementById('viewModal').classList.remove('active');
+  }
+
+  function deleteRecipe(event, id) {
+    event.stopPropagation();
+    if (!confirm('Delete this recipe?')) return;
+    recipes = recipes.filter(r => r.id !== id);
+    persistRecipes();
+    renderGrid();
+  }
+
+  // Close modals on overlay click
+  document.getElementById('addModal').addEventListener('click', function(e) {
+    if (e.target === this) closeAddModal();
+  });
+  document.getElementById('viewModal').addEventListener('click', function(e) {
+    if (e.target === this) closeViewModal();
+  });
+
+  loadRecipes();
+</script>
+</body>
+</html>
